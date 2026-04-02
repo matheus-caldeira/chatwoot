@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   base: &base
@@ -6,10 +6,10 @@ services:
       context: .
       dockerfile: ./docker/Dockerfile
       args:
-        BUNDLE_WITHOUT: ''
-        EXECJS_RUNTIME: 'Node'
-        RAILS_ENV: 'development'
-        RAILS_SERVE_STATIC_FILES: 'false'
+        BUNDLE_WITHOUT: ""
+        EXECJS_RUNTIME: "Node"
+        RAILS_ENV: "development"
+        RAILS_SERVE_STATIC_FILES: "false"
     tty: true
     stdin_open: true
     image: chatwoot:development
@@ -84,25 +84,23 @@ services:
 
   postgres:
     image: pgvector/pgvector:pg16
-    restart: always
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
       - postgres:/data/postgres
     environment:
       - POSTGRES_DB=chatwoot
       - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=
+      - POSTGRES_PASSWORD=pass
 
   redis:
     image: redis:alpine
-    restart: always
-    command: ["sh", "-c", "redis-server --requirepass \"$REDIS_PASSWORD\""]
+    command: ["sh", "-c", 'redis-server --requirepass "$REDIS_PASSWORD"']
     env_file: .env
     volumes:
       - redis:/data/redis
     ports:
-      - '6379:6379'
+      - "6379:6379"
 
   mailhog:
     image: mailhog/mailhog
