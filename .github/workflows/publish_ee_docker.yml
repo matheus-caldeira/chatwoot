@@ -16,7 +16,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_REPO: chatwoot/chatwoot
+  DOCKER_REPO: matheuscaldeira/chatwoot
 
 permissions:
   contents: read
@@ -98,6 +98,14 @@ jobs:
     needs:
       - build
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read app version
+        run: |
+          VERSION=$(sed -n "s/^ *version: *['\"]\{0,1\}\([0-9][^'\"]*\)['\"]\{0,1\} *$/\1/p" config/app.yml | head -1)
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -121,12 +129,12 @@ jobs:
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
           if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="${DOCKER_REPO}:latest"
+            TAGS="-t ${DOCKER_REPO}:latest -t ${DOCKER_REPO}:${APP_VERSION}"
           else
-            TAG="${DOCKER_REPO}:${SANITIZED_REF}"
+            TAGS="-t ${DOCKER_REPO}:${SANITIZED_REF}"
           fi
-          
-          docker buildx imagetools create -t $TAG \
+
+          docker buildx imagetools create $TAGS \
             $(printf '${{ env.DOCKER_REPO }}@sha256:%s ' *)
 
       - name: Inspect image
@@ -135,9 +143,9 @@ jobs:
         run: |
           SANITIZED_REF=$(echo "$GIT_REF" | sed 's/\//-/g')
           if [ "${{ github.ref_name }}" = "master" ]; then
-            TAG="${DOCKER_REPO}:latest"
+            TAG="${DOCKER_REPO}:${APP_VERSION}"
           else
             TAG="${DOCKER_REPO}:${SANITIZED_REF}"
           fi
-          
+
           docker buildx imagetools inspect $TAG
